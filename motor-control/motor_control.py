@@ -9,12 +9,8 @@ class MotorControl(object):
                 self.BIN2 = bin2
                 self.ENA = ena
                 self.ENB = enb
-                self.PA  = 50
-                self.PB  = 50
                 self.motor_min = -100
                 self.motor_max = 100
-                self.motorDelta = 0
-                self.acceleration = 1
 
                 GPIO.setmode(GPIO.BCM)
                 GPIO.setwarnings(False)
@@ -31,12 +27,10 @@ class MotorControl(object):
                 self.stop()
 
         def setPWMA(self, value):
-                self.PA = value
-                self.PWMA.ChangeDutyCycle(self.PA)
+                self.PWMA.ChangeDutyCycle(value)
 
         def setPWMB(self, value):
-                self.PB = value
-                self.PWMB.ChangeDutyCycle(self.PB)
+                self.PWMB.ChangeDutyCycle(value)
 
         def _setMotor(self, value, IN1, IN2, PWM):
                 if(value >= 0):
@@ -49,20 +43,14 @@ class MotorControl(object):
                 PWM.ChangeDutyCycle(value)
 
         def setMotorA(self, target):
-                error = target - self.PA
-                PA = self.PA
-                PA += error * self.acceleration
-                self.PA = max(int(PA), self.motor_min)
-                self.PA = min(int(PA), self.motor_max)
-                self._setMotor(self.PA, self.AIN1, self.AIN2, self.PWMA)
+                PA = max(target, self.motor_min)
+                PA = min(target, self.motor_max)
+                self._setMotor(PA, self.AIN1, self.AIN2, self.PWMA)
 
         def setMotorB(self, target):
-                error = target - self.PB
-                PB = self.PB
-                PB += error * self.acceleration
-                self.PB = max(int(PB), self.motor_min)
-                self.PB = min(int(PB), self.motor_max)
-                self._setMotor(self.PB, self.BIN1, self.BIN2, self.PWMB)
+                PB = max(target, self.motor_min)
+                PB = min(target, self.motor_max)
+                self._setMotor(PB, self.BIN1, self.BIN2, self.PWMB)
 
 
         def setMotor(self, left, right):
@@ -70,19 +58,14 @@ class MotorControl(object):
                 self.setMotorB(right)
 
         def stop(self):
-                self.PA = 0
-                self._setMotor(self.PA, self.AIN1, self.AIN2, self.PWMA)
-                self.PB = 0
-                self._setMotor(self.PB, self.BIN1, self.BIN2, self.PWMB)
+                self._setMotor(0, self.AIN1, self.AIN2, self.PWMA)
+                self._setMotor(0, self.BIN1, self.BIN2, self.PWMB)
                 
                 
         def test1(self):
-                t = 5
-                dt = 0.1
-                while t > 0:
-                    self.setMotor(100, 100)
-                    time.sleep(dt)
-                    t -= dt
+                self.setMotor(100, 100)
+                time.sleep(1)
+                self.stop()
                 
 
 if __name__=='__main__':
@@ -91,8 +74,8 @@ if __name__=='__main__':
         try:
                 while True:
                         controler.test1()
-                        time.sleep(5)
                         controler.stop()
+                        time.sleep(0.1)
 
         except KeyboardInterrupt:
                 GPIO.cleanup()
