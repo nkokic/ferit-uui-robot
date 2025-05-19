@@ -26,10 +26,10 @@ class MotorControl(object):
                 self.PWMB.start(self.PB)
                 self.stop()
 
-        def setPWMA(self, value):
+        def _setPWMA(self, value):
                 self.PWMA.ChangeDutyCycle(value)
 
-        def setPWMB(self, value):
+        def _setPWMB(self, value):
                 self.PWMB.ChangeDutyCycle(value)
 
         def _setMotor(self, value, IN1, IN2, PWM):
@@ -42,30 +42,49 @@ class MotorControl(object):
                         value = -value
                 PWM.ChangeDutyCycle(value)
 
-        def setMotorA(self, target):
+        def _setMotorA(self, target):
                 PA = max(target, self.motor_min)
                 PA = min(target, self.motor_max)
                 self._setMotor(PA, self.AIN1, self.AIN2, self.PWMA)
 
-        def setMotorB(self, target):
+        def _setMotorB(self, target):
                 PB = max(target, self.motor_min)
                 PB = min(target, self.motor_max)
                 self._setMotor(PB, self.BIN1, self.BIN2, self.PWMB)
 
 
-        def setMotor(self, left, right):
-                self.setMotorA(left)
-                self.setMotorB(right)
+        def setMotors(self, left, right):
+                self._setMotorA(left)
+                self._setMotorB(right)
 
         def stop(self):
                 self._setMotor(0, self.AIN1, self.AIN2, self.PWMA)
                 self._setMotor(0, self.BIN1, self.BIN2, self.PWMB)
                 
                 
-        def test1(self):
-                self.setMotor(100, 100)
+        def testForward(self):
+                self.setMotors(100, 100)
                 time.sleep(1)
                 self.stop()
+                time.sleep(1)
+        
+        def testLeft(self):
+                self.setMotors(-100, 100)
+                time.sleep(1)
+                self.stop()
+                time.sleep(1)
+        
+        def testRight(self):
+                self.setMotors(100, -100)
+                time.sleep(1)
+                self.stop()
+                time.sleep(1)
+        
+        def testBack(self):
+                self.setMotors(-100, -100)
+                time.sleep(1)
+                self.stop()
+                time.sleep(1)
                 
 
 if __name__=='__main__':
@@ -73,9 +92,10 @@ if __name__=='__main__':
         controler = MotorControl()
         try:
                 while True:
-                        controler.test1()
-                        controler.stop()
-                        time.sleep(0.1)
+                        controler.testForward()
+                        controler.testLeft()
+                        controler.testRight()
+                        controler.testBack()
 
         except KeyboardInterrupt:
                 GPIO.cleanup()
